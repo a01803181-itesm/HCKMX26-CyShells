@@ -5,7 +5,7 @@ import AhoCorasick from 'aho-corasick'; // Algoritmo de alta eficiencia
 
 // 1. Configuración de Clientes y Diccionarios
 const apifyClient = new ApifyClient({
-    token: 'apify_api_0vAXcK9Pfl48NBC4v3ENhUJsR48GrB1EEG7m', // Pon tu token real
+    token: process.env.API_TOKEN, // Pon tu token real
 });
 
 const diccionarioAmenazas = [
