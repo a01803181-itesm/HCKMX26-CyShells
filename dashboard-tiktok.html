@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Monitoreo TikTok</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f12;
+    --bg2: #13161b;
+    --bg3: #1a1e25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text2: #8b92a0;
+    --text3: #555d6b;
+    --red: #e8413e;
+    --red2: #ff6b68;
+    --red-dim: rgba(232,65,62,0.12);
+    --amber: #e8a83e;
+    --teal: #3ecfb2;
+    --blue: #4a9eff;
+    --chart1: #e8413e;
+    --chart2: #e8a83e;
+    --chart3: #3ecfb2;
+    --chart4: #4a9eff;
+    --chart5: #a78bfa;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(232,65,62,0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(232,65,62,0); }
+  }
+  .logo-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+  .logo-text span { color: var(--red); }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .badge-live {
+    background: var(--red-dim);
+    border: 1px solid rgba(232,65,62,0.3);
+    color: var(--red2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.1em;
+  }
+  #last-update {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── IMPORT ZONE ── */
+  .import-zone {
+    border: 1px dashed var(--border2);
+    border-radius: 8px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: var(--bg2);
+    transition: border-color 0.2s;
+  }
+  .import-zone.drag-over {
+    border-color: var(--teal);
+    background: rgba(62,207,178,0.05);
+  }
+  .import-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .import-icon {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    background: rgba(62,207,178,0.1);
+    border: 1px solid rgba(62,207,178,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .import-icon svg { width: 18px; height: 18px; stroke: var(--teal); }
+  .import-title { font-weight: 500; font-size: 13px; }
+  .import-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .import-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 5px;
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #cc3533; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text2);
+  }
+  .btn-secondary:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+  .btn-teal {
+    background: transparent;
+    border-color: rgba(62,207,178,0.3);
+    color: var(--teal);
+  }
+  .btn-teal:hover { background: rgba(62,207,178,0.08); }
+
+  #file-input { display: none; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── METRIC CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .card-value {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .card-value.red { color: var(--red2); }
+  .card-value.amber { color: var(--amber); }
+  .card-value.teal { color: var(--teal); }
+  .card-value.blue { color: var(--blue); }
+  .card-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── CHARTS GRID ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .charts-row.full { grid-template-columns: 1fr; }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .chart-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* ── TABLE ── */
+  .table-wrapper {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .table-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .table-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+  #search-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    width: 200px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #search-input:focus { border-color: var(--border2); }
+  #search-input::placeholder { color: var(--text3); }
+
+  .tbl-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg3); }
+  .td-account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .account-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--red-dim);
+    border: 1px solid rgba(232,65,62,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--red2);
+    flex-shrink: 0;
+  }
+  .account-name { color: var(--text); font-weight: 500; }
+  .num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 7px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    white-space: nowrap;
+  }
+  .tag.hashtag { color: var(--blue); border-color: rgba(74,158,255,0.2); background: rgba(74,158,255,0.06); }
+  .tag.emoji { font-size: 13px; background: var(--bg3); border-color: var(--border); }
+  .tag.music { color: var(--amber); border-color: rgba(232,168,62,0.2); background: rgba(232,168,62,0.06); }
+
+  /* ── EMPTY STATE ── */
+  #empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  .empty-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .empty-icon svg { stroke: var(--text3); width: 24px; height: 24px; }
+  .empty-title { font-size: 14px; font-weight: 500; color: var(--text2); }
+  .empty-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+  /* ── EXPORT BAR ── */
+  .export-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .export-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1rem 2rem;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--bg3);
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span class="logo-text">TK<span>/</span>MONITOR</span>
+  </div>
+  <div class="header-right">
+    <span class="badge-live">ACTIVO</span>
+    <span id="last-update">Sin datos cargados</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- IMPORT -->
+  <div class="import-zone" id="drop-zone">
+    <div class="import-left">
+      <div class="import-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M8 12l4-4 4 4M12 4v12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="import-title">Importar datos</div>
+        <div class="import-sub">Arrastra un archivo JSON o CSV exportado desde Apify / Octoparse</div>
+      </div>
+    </div>
+    <div class="import-actions">
+      <button class="btn btn-teal" onclick="document.getElementById('file-input').click()">Cargar archivo</button>
+      <button class="btn btn-secondary" onclick="loadSampleData()">Usar datos de ejemplo</button>
+    </div>
+  </div>
+  <input type="file" id="file-input" accept=".json,.csv">
+
+  <!-- MÉTRICAS -->
+  <div class="section-header">
+    <span class="section-label">Resumen</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-label">Cuentas monitoreadas</div>
+      <div class="card-value red" id="stat-cuentas">—</div>
+      <div class="card-sub">perfiles únicos</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Seguidores totales</div>
+      <div class="card-value amber" id="stat-followers">—</div>
+      <div class="card-sub">alcance acumulado</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Publicaciones</div>
+      <div class="card-value teal" id="stat-posts">—</div>
+      <div class="card-sub">videos registrados</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Comentarios</div>
+      <div class="card-value blue" id="stat-comments">—</div>
+      <div class="card-sub">interacciones</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Hashtag principal</div>
+      <div class="card-value" id="stat-hashtag" style="font-size:16px; padding-top:5px;">—</div>
+      <div class="card-sub">más frecuente</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Emoji principal</div>
+      <div class="card-value" id="stat-emoji" style="font-size:28px; padding-top:2px;">—</div>
+      <div class="card-sub">más frecuente</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICAS FILA 1 -->
+  <div class="section-header">
+    <span class="section-label">Gráficas</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">// seguidores por cuenta</div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="chart-followers" role="img" aria-label="Seguidores por cuenta de TikTok">Cargando datos...</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">// publicaciones por cuenta</div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="chart-posts" role="img" aria-label="Publicaciones por cuenta">Cargando datos...</canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">// hashtags más usados (top 10)</div>
+      <div class="chart-wrap" id="wrap-hashtags" style="height:320px;"><canvas id="chart-hashtags" role="img" aria-label="Hashtags más frecuentes">Cargando datos...</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">// emojis más usados (top 10)</div>
+      <div class="chart-wrap" id="wrap-emojis" style="height:320px;"><canvas id="chart-emojis" role="img" aria-label="Emojis más frecuentes">Cargando datos...</canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">// música más usada (top 8)</div>
+      <div class="chart-wrap" id="wrap-music" style="height:300px;"><canvas id="chart-music" role="img" aria-label="Música más usada">Cargando datos...</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">// comentarios por cuenta</div>
+      <div class="chart-wrap" style="height:300px;"><canvas id="chart-comments" role="img" aria-label="Comentarios por cuenta">Cargando datos...</canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="section-header" style="margin-top:0.5rem;">
+    <span class="section-label">Registros</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="table-wrapper">
+    <div class="table-header">
+      <span class="table-title">// cuentas detectadas</span>
+      <input type="text" id="search-input" placeholder="buscar cuenta...">
+    </div>
+    <div class="tbl-scroll">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th>Seguidores</th>
+            <th>Posts</th>
+            <th>Comentarios</th>
+            <th>Hashtags</th>
+            <th>Emojis</th>
+            <th>Música</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="7"><div id="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>
+            <div class="empty-title">Sin datos cargados</div>
+            <div class="empty-sub">Importa un JSON/CSV o usa los datos de ejemplo para comenzar</div>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXPORT -->
+  <div class="export-bar">
+    <span class="export-label">exportar:</span>
+    <button class="btn btn-secondary" onclick="exportJSON()">JSON</button>
+    <button class="btn btn-secondary" onclick="exportCSV()">CSV</button>
+  </div>
+
+</main>
+
+<footer>TK/MONITOR — uso exclusivo para investigación y protección de menores</footer>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ── ESTADO GLOBAL ── */
+let allData = [];
+let charts = {};
+
+/* ── DATOS DE EJEMPLO ── */
+const SAMPLE_DATA = [
+  {
+    cuenta: "@trabajo_facil_mx",
+    followers: 48200,
+    publicaciones: 87,
+    comentarios: 12400,
+    hashtags: ["#trabajofacil","#dinerofacil","#oportunidad","#trabaja","#joven"],
+    emojis: ["💰","🔥","💯","🤑","✅"],
+    musica: ["Tusa - KAROL G","Cupido - TINI","Ella Baila Sola - Eslabon Armado"]
+  },
+  {
+    cuenta: "@recluta.norte",
+    followers: 31700,
+    publicaciones: 53,
+    comentarios: 8950,
+    hashtags: ["#dinerorapido","#jales","#norte","#trabaja18","#oportunidadreal"],
+    emojis: ["💵","🚀","💯","🙏","🤝"],
+    musica: ["La Bebe - Yng Lvcas","El Azul - Natanael Cano","LALA - Myke Towers"]
+  },
+  {
+    cuenta: "@oport.vida.mx",
+    followers: 22500,
+    publicaciones: 41,
+    comentarios: 5300,
+    hashtags: ["#oportunidad","#trabajojoven","#bienestar","#dinerofacil","#empleo"],
+    emojis: ["✨","💪","🔥","👑","💰"],
+    musica: ["Shakira: Bzrp Music Sessions #53","Tusa - KAROL G","Si Antes Te Hubiera Conocido"]
+  },
+  {
+    cuenta: "@negocio.mx.real",
+    followers: 67100,
+    publicaciones: 120,
+    comentarios: 21300,
+    hashtags: ["#negocio","#dinerofacil","#jovenes","#trabaja","#norte"],
+    emojis: ["💰","🔥","🤑","💵","💯"],
+    musica: ["El Azul - Natanael Cano","LALA - Myke Towers","Tusa - KAROL G"]
+  },
+  {
+    cuenta: "@jobs.frontera22",
+    followers: 15800,
+    publicaciones: 29,
+    comentarios: 3100,
+    hashtags: ["#frontera","#trabajofrontera","#cruzar","#oportunidad","#dinerofacil"],
+    emojis: ["🚗","🛣️","💰","🤝","✅"],
+    musica: ["Cupido - TINI","La Bebe - Yng Lvcas","LALA - Myke Towers"]
+  },
+  {
+    cuenta: "@trabaja.aqui.ya",
+    followers: 39400,
+    publicaciones: 66,
+    comentarios: 9800,
+    hashtags: ["#trabaja","#jovenes","#dinerofacil","#empleo","#oportunidad"],
+    emojis: ["💪","🔥","✅","💰","🏆"],
+    musica: ["Ella Baila Sola - Eslabon Armado","El Azul - Natanael Cano","Shakira: Bzrp Music Sessions #53"]
+  }
+];
+
+/* ── CARGA DE ARCHIVO ── */
+document.getElementById('file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      if (file.name.endsWith('.csv')) {
+        allData = parseCSV(ev.target.result);
+      } else {
+        allData = JSON.parse(ev.target.result);
+      }
+      renderAll();
+      showToast('Archivo cargado: ' + file.name);
+    } catch(err) {
+      showToast('Error al parsear el archivo');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* ── DRAG & DROP ── */
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      allData = file.name.endsWith('.csv') ? parseCSV(ev.target.result) : JSON.parse(ev.target.result);
+      renderAll();
+      showToast('Archivo cargado por drag & drop');
+    } catch { showToast('Error al parsear el archivo'); }
+  };
+  reader.readAsText(file);
+});
+
+function loadSampleData() {
+  allData = SAMPLE_DATA;
+  renderAll();
+  showToast('Datos de ejemplo cargados');
+}
+
+/* ── PARSE CSV ── */
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.replace(/"/g,'').trim());
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = vals[i] || '');
+    return {
+      cuenta: obj.cuenta || obj.account || obj.username || '',
+      followers: parseInt(obj.followers || obj.seguidores || 0),
+      publicaciones: parseInt(obj.publicaciones || obj.posts || 0),
+      comentarios: parseInt(obj.comentarios || obj.comments || 0),
+      hashtags: (obj.hashtags || '').split('|').filter(Boolean),
+      emojis: (obj.emojis || '').split('|').filter(Boolean),
+      musica: (obj.musica || obj.music || '').split('|').filter(Boolean)
+    };
+  }).filter(r => r.cuenta);
+}
+
+/* ── RENDER EVERYTHING ── */
+function renderAll() {
+  updateTimestamp();
+  renderCards();
+  renderChartFollowers();
+  renderChartPosts();
+  renderChartHashtags();
+  renderChartEmojis();
+  renderChartMusic();
+  renderChartComments();
+  renderTable(allData);
+}
+
+function updateTimestamp() {
+  const now = new Date();
+  document.getElementById('last-update').textContent =
+    now.toLocaleDateString('es-MX') + ' ' + now.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
+}
+
+/* ── TARJETAS ── */
+function renderCards() {
+  const totalFollowers = allData.reduce((a,b) => a + (b.followers||0), 0);
+  const totalPosts     = allData.reduce((a,b) => a + (b.publicaciones||0), 0);
+  const totalComments  = allData.reduce((a,b) => a + (b.comentarios||0), 0);
+  document.getElementById('stat-cuentas').textContent   = allData.length;
+  document.getElementById('stat-followers').textContent = fmtNum(totalFollowers);
+  document.getElementById('stat-posts').textContent     = fmtNum(totalPosts);
+  document.getElementById('stat-comments').textContent  = fmtNum(totalComments);
+
+  const tagFreq = countFreq(allData.flatMap(d => d.hashtags || []));
+  const top1Tag = topN(tagFreq, 1);
+  document.getElementById('stat-hashtag').textContent = top1Tag.length ? top1Tag[0][0] : '—';
+
+  const emojiFreq = countFreq(allData.flatMap(d => d.emojis || []));
+  const top1Emoji = topN(emojiFreq, 1);
+  document.getElementById('stat-emoji').textContent = top1Emoji.length ? top1Emoji[0][0] : '—';
+}
+
+/* ── GRÁFICAS ── */
+const CHART_OPTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
+    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555d6b', font: { family: 'IBM Plex Mono', size: 10 } } }
+  }
+};
+const HORIZ_OPTS = {
+  indexAxis: 'y',
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
+    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b92a0', font: { family: 'IBM Plex Mono', size: 11 } } }
+  }
+};
+
+function makeChart(id, type, labels, data, color, opts) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: color,
+        borderColor: 'transparent',
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: opts
+  });
+}
+
+function renderChartFollowers() {
+  const labels = allData.map(d => shortName(d.cuenta));
+  const data   = allData.map(d => d.followers || 0);
+  makeChart('chart-followers', 'bar', labels, data, '#e8413e', CHART_OPTS);
+}
+function renderChartPosts() {
+  const labels = allData.map(d => shortName(d.cuenta));
+  const data   = allData.map(d => d.publicaciones || 0);
+  makeChart('chart-posts', 'bar', labels, data, '#e8a83e', CHART_OPTS);
+}
+function renderChartComments() {
+  const labels = allData.map(d => shortName(d.cuenta));
+  const data   = allData.map(d => d.comentarios || 0);
+  makeChart('chart-comments', 'bar', labels, data, '#4a9eff', CHART_OPTS);
+}
+
+function renderChartHashtags() {
+  const freq = countFreq(allData.flatMap(d => d.hashtags || []));
+  const top  = topN(freq, 10);
+  const h = Math.max(top.length * 40 + 60, 200);
+  document.getElementById('wrap-hashtags').style.height = h + 'px';
+  makeChart('chart-hashtags', 'bar', top.map(t=>t[0]), top.map(t=>t[1]), '#4a9eff', HORIZ_OPTS);
+}
+function renderChartEmojis() {
+  const freq = countFreq(allData.flatMap(d => d.emojis || []));
+  const top  = topN(freq, 10);
+  const h = Math.max(top.length * 40 + 60, 200);
+  document.getElementById('wrap-emojis').style.height = h + 'px';
+  makeChart('chart-emojis', 'bar', top.map(t=>t[0]), top.map(t=>t[1]), '#a78bfa', HORIZ_OPTS);
+}
+function renderChartMusic() {
+  const freq = countFreq(allData.flatMap(d => d.musica || []));
+  const top  = topN(freq, 8);
+  const h = Math.max(top.length * 40 + 60, 200);
+  document.getElementById('wrap-music').style.height = h + 'px';
+  makeChart('chart-music', 'bar', top.map(t=>t[0].length>30?t[0].slice(0,30)+'…':t[0]), top.map(t=>t[1]), '#e8a83e', HORIZ_OPTS);
+}
+
+/* ── TABLA ── */
+function renderTable(data) {
+  const tbody = document.getElementById('table-body');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div id="empty-state"><div class="empty-title">Sin resultados</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(row => {
+    const initials = (row.cuenta || '').replace('@','').slice(0,2).toUpperCase();
+    const htags = (row.hashtags||[]).slice(0,4).map(h => `<span class="tag hashtag">${h}</span>`).join('');
+    const emjs  = (row.emojis||[]).slice(0,4).map(e => `<span class="tag emoji">${e}</span>`).join('');
+    const music = (row.musica||[]).slice(0,2).map(m => `<span class="tag music">${m.length>28?m.slice(0,28)+'…':m}</span>`).join('');
+    return `<tr>
+      <td><div class="td-account"><div class="account-avatar">${initials}</div><span class="account-name">${row.cuenta}</span></div></td>
+      <td class="num">${fmtNum(row.followers||0)}</td>
+      <td class="num">${fmtNum(row.publicaciones||0)}</td>
+      <td class="num">${fmtNum(row.comentarios||0)}</td>
+      <td><div class="tags">${htags}</div></td>
+      <td><div class="tags">${emjs}</div></td>
+      <td><div class="tags">${music}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── BÚSQUEDA ── */
+document.getElementById('search-input').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  renderTable(allData.filter(d => (d.cuenta||'').toLowerCase().includes(q)));
+});
+
+/* ── EXPORT ── */
+function exportJSON() {
+  if (!allData.length) return showToast('No hay datos para exportar');
+  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+  downloadBlob(blob, 'tiktok-monitor.json');
+  showToast('JSON exportado');
+}
+function exportCSV() {
+  if (!allData.length) return showToast('No hay datos para exportar');
+  const headers = ['cuenta','followers','publicaciones','comentarios','hashtags','emojis','musica'];
+  const rows = allData.map(d => [
+    d.cuenta, d.followers||0, d.publicaciones||0, d.comentarios||0,
+    (d.hashtags||[]).join('|'), (d.emojis||[]).join('|'), (d.musica||[]).join('|')
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  downloadBlob(new Blob([csv], {type:'text/csv'}), 'tiktok-monitor.csv');
+  showToast('CSV exportado');
+}
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+}
+
+/* ── HELPERS ── */
+function fmtNum(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toString();
+}
+function shortName(name) { return (name||'').replace('@','').slice(0,12); }
+function countFreq(arr) {
+  const map = {};
+  arr.forEach(v => { if(v) map[v] = (map[v]||0)+1; });
+  return map;
+}
+function topN(freq, n) {
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
