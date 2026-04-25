@@ -139,6 +139,19 @@
   .import-icon svg { width: 18px; height: 18px; stroke: var(--teal); }
   .import-title { font-weight: 500; font-size: 13px; }
   .import-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  #import-title-text {
+    display: block;
+    max-width: min(62vw, 760px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #drop-zone.file-loaded #import-title-text {
+    font-size: 24px;
+    line-height: 36px;
+    color: var(--text);
+  }
+  #drop-zone.file-loaded #import-sub-text { display: none; }
   .import-actions { display: flex; gap: 10px; flex-wrap: wrap; }
   .btn {
     font-family: 'IBM Plex Sans', sans-serif;
@@ -207,6 +220,45 @@
     transition: border-color 0.2s;
   }
   .card:hover { border-color: var(--border2); }
+  .card-risk { position: relative; }
+  .risk-hover-box {
+    position: absolute;
+    left: 12px;
+    top: calc(100% + 8px);
+    min-width: 210px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 20;
+  }
+  .card-risk:hover .risk-hover-box {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .risk-hover-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 7px;
+  }
+  .risk-hover-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .risk-hover-row + .risk-hover-row { margin-top: 4px; }
+  .risk-hover-row strong { color: var(--text); font-weight: 600; }
   .card-label {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
@@ -257,6 +309,63 @@
     font-family: 'IBM Plex Mono', monospace;
     letter-spacing: 0.05em;
   }
+  .chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .chart-head .chart-title { margin-bottom: 0; }
+  .info-wrap { position: relative; display: inline-flex; }
+  .info-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1;
+    cursor: help;
+    user-select: none;
+  }
+  .info-pop {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    min-width: 220px;
+    max-width: 320px;
+    padding: 10px 12px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: all 0.15s;
+    z-index: 30;
+  }
+  .info-wrap:hover .info-pop { opacity: 1; transform: translateY(0); }
+  .info-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .info-list {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.45;
+    word-break: break-word;
+  }
   .chart-wrap { position: relative; width: 100%; }
 
   /* ── TABLE ── */
@@ -283,6 +392,12 @@
     font-family: 'IBM Plex Mono', monospace;
     letter-spacing: 0.05em;
   }
+  .table-file {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
   #search-input {
     background: var(--bg3);
     border: 1px solid var(--border);
@@ -297,6 +412,24 @@
   }
   #search-input:focus { border-color: var(--border2); }
   #search-input::placeholder { color: var(--text3); }
+  .table-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    outline: none;
+    min-width: 170px;
+  }
+  .filter-select:focus { border-color: var(--border2); color: var(--text); }
 
   .tbl-scroll { overflow-x: auto; }
   table {
@@ -361,6 +494,10 @@
   .tag.hashtag { color: var(--blue); border-color: rgba(74,158,255,0.2); background: rgba(74,158,255,0.06); }
   .tag.emoji { font-size: 13px; background: var(--bg3); border-color: var(--border); }
   .tag.music { color: var(--amber); border-color: rgba(232,168,62,0.2); background: rgba(232,168,62,0.06); }
+  .tag.risk { font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+  .tag.risk-high { color: var(--red2); border-color: rgba(232,65,62,0.35); background: rgba(232,65,62,0.12); }
+  .tag.risk-mid { color: var(--amber); border-color: rgba(232,168,62,0.35); background: rgba(232,168,62,0.12); }
+  .tag.risk-safe { color: var(--teal); border-color: rgba(62,207,178,0.35); background: rgba(62,207,178,0.12); }
 
   /* ── EMPTY STATE ── */
   #empty-state {
@@ -453,13 +590,12 @@
         </svg>
       </div>
       <div>
-        <div class="import-title">Importar datos</div>
-        <div class="import-sub">Arrastra un archivo JSON o CSV exportado desde Apify / Octoparse</div>
+        <div class="import-title" id="import-title-text">Importar datos</div>
+        <div class="import-sub" id="import-sub-text">Arrastra un archivo JSON o CSV exportado desde Apify / Octoparse</div>
       </div>
     </div>
     <div class="import-actions">
       <button class="btn btn-teal" onclick="document.getElementById('file-input').click()">Cargar archivo</button>
-      <button class="btn btn-secondary" onclick="loadSampleData()">Usar datos de ejemplo</button>
     </div>
   </div>
   <input type="file" id="file-input" accept=".json,.csv">
@@ -470,10 +606,15 @@
     <div class="section-line"></div>
   </div>
   <div class="cards-grid">
-    <div class="card">
+    <div class="card card-risk">
       <div class="card-label">Cuentas monitoreadas</div>
       <div class="card-value red" id="stat-cuentas">—</div>
       <div class="card-sub">perfiles únicos</div>
+      <div class="risk-hover-box" id="risk-hover-box">
+        <div class="risk-hover-title">desglose de riesgo</div>
+        <div class="risk-hover-row"><span>Seguras</span><strong id="risk-safe-count">—</strong></div>
+        <div class="risk-hover-row"><span>No seguras</span><strong id="risk-unsafe-count">—</strong></div>
+      </div>
     </div>
     <div class="card">
       <div class="card-label">Seguidores totales</div>
@@ -520,7 +661,16 @@
 
   <div class="charts-row">
     <div class="chart-card">
-      <div class="chart-title">// hashtags más usados (top 10)</div>
+      <div class="chart-head">
+        <div class="chart-title">// hashtags más usados (top 10)</div>
+        <div class="info-wrap" aria-label="Hashtags ignorados">
+          <span class="info-btn">i</span>
+          <div class="info-pop">
+            <div class="info-title">hashtags ignorados</div>
+            <div class="info-list" id="ignored-hashtags-list">ninguno</div>
+          </div>
+        </div>
+      </div>
       <div class="chart-wrap" id="wrap-hashtags" style="height:320px;"><canvas id="chart-hashtags" role="img" aria-label="Hashtags más frecuentes">Cargando datos...</canvas></div>
     </div>
     <div class="chart-card">
@@ -547,14 +697,29 @@
   </div>
   <div class="table-wrapper">
     <div class="table-header">
-      <span class="table-title">// cuentas detectadas</span>
-      <input type="text" id="search-input" placeholder="buscar cuenta...">
+      <div>
+        <div class="table-title">// cuentas detectadas</div>
+        <div class="table-file" id="loaded-file-name">archivo: sin cargar</div>
+      </div>
+      <div class="table-filters">
+        <input type="text" id="search-input" placeholder="buscar cuenta...">
+        <select id="filter-riesgo" class="filter-select" aria-label="Filtrar por riesgo">
+          <option value="">riesgo: todos</option>
+        </select>
+        <select id="filter-hashtag" class="filter-select" aria-label="Filtrar por hashtag repetido">
+          <option value="">hashtag repetido: todos</option>
+        </select>
+        <select id="filter-musica" class="filter-select" aria-label="Filtrar por música repetida">
+          <option value="">música repetida: todos</option>
+        </select>
+      </div>
     </div>
     <div class="tbl-scroll">
       <table id="data-table">
         <thead>
           <tr>
             <th>Cuenta</th>
+            <th>Riesgo</th>
             <th>Seguidores</th>
             <th>Posts</th>
             <th>Comentarios</th>
@@ -564,7 +729,7 @@
           </tr>
         </thead>
         <tbody id="table-body">
-          <tr><td colspan="7"><div id="empty-state">
+          <tr><td colspan="8"><div id="empty-state">
             <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg></div>
             <div class="empty-title">Sin datos cargados</div>
             <div class="empty-sub">Importa un JSON/CSV o usa los datos de ejemplo para comenzar</div>
@@ -591,6 +756,10 @@
 /* ── ESTADO GLOBAL ── */
 let allData = [];
 let charts = {};
+let currentFileName = 'sin cargar';
+const IGNORED_HASHTAG_BASE = new Set([
+  'fyp', 'foryou', 'foryoupage', 'fy', 'viral', 'trending', 'parati', 'para_ti'
+]);
 
 /* ── DATOS DE EJEMPLO ── */
 const SAMPLE_DATA = [
@@ -658,10 +827,12 @@ document.getElementById('file-input').addEventListener('change', e => {
   reader.onload = ev => {
     try {
       if (file.name.endsWith('.csv')) {
-        allData = parseCSV(ev.target.result);
+        allData = normalizeData(parseCSV(ev.target.result));
       } else {
-        allData = JSON.parse(ev.target.result);
+        const parsed = JSON.parse(ev.target.result);
+        allData = normalizeData(parsed);
       }
+      setLoadedFileName(file.name);
       renderAll();
       showToast('Archivo cargado: ' + file.name);
     } catch(err) {
@@ -684,7 +855,13 @@ dropZone.addEventListener('drop', e => {
   const reader = new FileReader();
   reader.onload = ev => {
     try {
-      allData = file.name.endsWith('.csv') ? parseCSV(ev.target.result) : JSON.parse(ev.target.result);
+      if (file.name.endsWith('.csv')) {
+        allData = normalizeData(parseCSV(ev.target.result));
+      } else {
+        const parsed = JSON.parse(ev.target.result);
+        allData = normalizeData(parsed);
+      }
+      setLoadedFileName(file.name);
       renderAll();
       showToast('Archivo cargado por drag & drop');
     } catch { showToast('Error al parsear el archivo'); }
@@ -693,7 +870,8 @@ dropZone.addEventListener('drop', e => {
 });
 
 function loadSampleData() {
-  allData = SAMPLE_DATA;
+  allData = normalizeData(SAMPLE_DATA);
+  setLoadedFileName('datos de ejemplo');
   renderAll();
   showToast('Datos de ejemplo cargados');
 }
@@ -713,9 +891,76 @@ function parseCSV(text) {
       comentarios: parseInt(obj.comentarios || obj.comments || 0),
       hashtags: (obj.hashtags || '').split('|').filter(Boolean),
       emojis: (obj.emojis || '').split('|').filter(Boolean),
-      musica: (obj.musica || obj.music || '').split('|').filter(Boolean)
+      musica: (obj.musica || obj.music || '').split('|').filter(Boolean),
+      riesgo: obj.riesgo || obj.label || obj.riskLabel || 'seguro'
     };
   }).filter(r => r.cuenta);
+}
+
+function normalizeData(input) {
+  if (!Array.isArray(input)) return [];
+  if (!input.length) return [];
+  const first = input[0];
+  if (first && typeof first === 'object' && (
+    Object.prototype.hasOwnProperty.call(first, 'cuenta') ||
+    Object.prototype.hasOwnProperty.call(first, 'followers') ||
+    Object.prototype.hasOwnProperty.call(first, 'publicaciones')
+  )) {
+    return input.map(row => ({
+      cuenta: row.cuenta || '',
+      followers: Number(row.followers) || 0,
+      publicaciones: Number(row.publicaciones) || 0,
+      comentarios: Number(row.comentarios) || 0,
+      hashtags: toUniqueArray(row.hashtags),
+      emojis: toUniqueArray(row.emojis),
+      musica: toUniqueArray(row.musica),
+      riesgo: normalizeRiskLabel(row.riesgo || row.label || row.riskLabel)
+    })).filter(r => r.cuenta);
+  }
+
+  const grouped = {};
+  input.forEach(item => {
+    if (!item || typeof item !== 'object') return;
+    const username = item.authorMeta?.name || item.authorMeta?.nickName || '';
+    if (!username) return;
+    const cuenta = username.startsWith('@') ? username : '@' + username;
+    if (!grouped[cuenta]) {
+      grouped[cuenta] = {
+        cuenta,
+        followers: 0,
+        publicaciones: 0,
+        comentarios: 0,
+        hashtagsSet: new Set(),
+        emojisSet: new Set(),
+        musicaSet: new Set(),
+        riskLevel: 'seguro'
+      };
+    }
+    const row = grouped[cuenta];
+    row.followers = Math.max(row.followers, Number(item.authorMeta?.fans) || 0);
+    row.publicaciones += 1;
+    row.comentarios += Number(item.commentCount) || 0;
+
+    extractHashtags(item).forEach(h => row.hashtagsSet.add(h));
+    extractEmojis(item.text).forEach(e => row.emojisSet.add(e));
+    const song = item.musicMeta?.musicName;
+    if (song && typeof song === 'string') row.musicaSet.add(song.trim());
+    const itemRisk = normalizeRiskLabel(item.label || item.riesgo || item.riskLabel);
+    row.riskLevel = highestRisk(row.riskLevel, itemRisk);
+  });
+
+  return Object.values(grouped)
+    .map(r => ({
+      cuenta: r.cuenta,
+      followers: r.followers,
+      publicaciones: r.publicaciones,
+      comentarios: r.comentarios,
+      hashtags: Array.from(r.hashtagsSet),
+      emojis: Array.from(r.emojisSet),
+      musica: Array.from(r.musicaSet),
+      riesgo: r.riskLevel
+    }))
+    .sort((a, b) => b.followers - a.followers);
 }
 
 /* ── RENDER EVERYTHING ── */
@@ -728,7 +973,8 @@ function renderAll() {
   renderChartEmojis();
   renderChartMusic();
   renderChartComments();
-  renderTable(allData);
+  populateTableFilters();
+  applyTableFilters();
 }
 
 function updateTimestamp() {
@@ -736,16 +982,34 @@ function updateTimestamp() {
   document.getElementById('last-update').textContent =
     now.toLocaleDateString('es-MX') + ' ' + now.toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
 }
+function setLoadedFileName(name) {
+  currentFileName = name || 'sin cargar';
+  const el = document.getElementById('loaded-file-name');
+  if (el) el.textContent = 'archivo: ' + currentFileName;
+  const importTitle = document.getElementById('import-title-text');
+  const importSub = document.getElementById('import-sub-text');
+  const drop = document.getElementById('drop-zone');
+  const loaded = currentFileName !== 'sin cargar';
+  if (drop) drop.classList.toggle('file-loaded', loaded);
+  if (importTitle) importTitle.textContent = loaded ? currentFileName : 'Importar datos';
+  if (importSub) {
+    importSub.textContent = loaded ? '' : 'Arrastra un archivo JSON o CSV exportado desde Apify / Octoparse';
+  }
+}
 
 /* ── TARJETAS ── */
 function renderCards() {
   const totalFollowers = allData.reduce((a,b) => a + (b.followers||0), 0);
   const totalPosts     = allData.reduce((a,b) => a + (b.publicaciones||0), 0);
   const totalComments  = allData.reduce((a,b) => a + (b.comentarios||0), 0);
+  const safeCount      = allData.filter(d => normalizeRiskLabel(d.riesgo || d.label || d.riskLabel) === 'seguro').length;
+  const unsafeCount    = Math.max(allData.length - safeCount, 0);
   document.getElementById('stat-cuentas').textContent   = allData.length;
   document.getElementById('stat-followers').textContent = fmtNum(totalFollowers);
   document.getElementById('stat-posts').textContent     = fmtNum(totalPosts);
   document.getElementById('stat-comments').textContent  = fmtNum(totalComments);
+  document.getElementById('risk-safe-count').textContent = safeCount;
+  document.getElementById('risk-unsafe-count').textContent = unsafeCount;
 
   const tagFreq = countFreq(allData.flatMap(d => d.hashtags || []));
   const top1Tag = topN(tagFreq, 1);
@@ -812,11 +1076,13 @@ function renderChartComments() {
 }
 
 function renderChartHashtags() {
-  const freq = countFreq(allData.flatMap(d => d.hashtags || []));
+  const ignoredFound = new Set();
+  const freq = countAccountsByHashtag(allData, ignoredFound);
   const top  = topN(freq, 10);
   const h = Math.max(top.length * 40 + 60, 200);
   document.getElementById('wrap-hashtags').style.height = h + 'px';
   makeChart('chart-hashtags', 'bar', top.map(t=>t[0]), top.map(t=>t[1]), '#4a9eff', HORIZ_OPTS);
+  updateIgnoredHashtagInfo(ignoredFound);
 }
 function renderChartEmojis() {
   const freq = countFreq(allData.flatMap(d => d.emojis || []));
@@ -837,7 +1103,7 @@ function renderChartMusic() {
 function renderTable(data) {
   const tbody = document.getElementById('table-body');
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div id="empty-state"><div class="empty-title">Sin resultados</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div id="empty-state"><div class="empty-title">Sin resultados</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(row => {
@@ -845,8 +1111,11 @@ function renderTable(data) {
     const htags = (row.hashtags||[]).slice(0,4).map(h => `<span class="tag hashtag">${h}</span>`).join('');
     const emjs  = (row.emojis||[]).slice(0,4).map(e => `<span class="tag emoji">${e}</span>`).join('');
     const music = (row.musica||[]).slice(0,2).map(m => `<span class="tag music">${m.length>28?m.slice(0,28)+'…':m}</span>`).join('');
+    const riskLabel = normalizeRiskLabel(row.riesgo || row.label || row.riskLabel);
+    const riskClass = riskLabel === 'muy peligroso' ? 'risk-high' : (riskLabel === 'intermedio' ? 'risk-mid' : 'risk-safe');
     return `<tr>
       <td><div class="td-account"><div class="account-avatar">${initials}</div><span class="account-name">${row.cuenta}</span></div></td>
+      <td><div class="tags"><span class="tag risk ${riskClass}">${riskLabel}</span></div></td>
       <td class="num">${fmtNum(row.followers||0)}</td>
       <td class="num">${fmtNum(row.publicaciones||0)}</td>
       <td class="num">${fmtNum(row.comentarios||0)}</td>
@@ -858,10 +1127,10 @@ function renderTable(data) {
 }
 
 /* ── BÚSQUEDA ── */
-document.getElementById('search-input').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  renderTable(allData.filter(d => (d.cuenta||'').toLowerCase().includes(q)));
-});
+document.getElementById('search-input').addEventListener('input', applyTableFilters);
+document.getElementById('filter-riesgo').addEventListener('change', applyTableFilters);
+document.getElementById('filter-hashtag').addEventListener('change', applyTableFilters);
+document.getElementById('filter-musica').addEventListener('change', applyTableFilters);
 
 /* ── EXPORT ── */
 function exportJSON() {
@@ -872,10 +1141,10 @@ function exportJSON() {
 }
 function exportCSV() {
   if (!allData.length) return showToast('No hay datos para exportar');
-  const headers = ['cuenta','followers','publicaciones','comentarios','hashtags','emojis','musica'];
+  const headers = ['cuenta','followers','publicaciones','comentarios','hashtags','emojis','musica','riesgo'];
   const rows = allData.map(d => [
     d.cuenta, d.followers||0, d.publicaciones||0, d.comentarios||0,
-    (d.hashtags||[]).join('|'), (d.emojis||[]).join('|'), (d.musica||[]).join('|')
+    (d.hashtags||[]).join('|'), (d.emojis||[]).join('|'), (d.musica||[]).join('|'), normalizeRiskLabel(d.riesgo || d.label || d.riskLabel)
   ]);
   const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   downloadBlob(new Blob([csv], {type:'text/csv'}), 'tiktok-monitor.csv');
@@ -900,8 +1169,148 @@ function countFreq(arr) {
   arr.forEach(v => { if(v) map[v] = (map[v]||0)+1; });
   return map;
 }
+function countAccountsByHashtag(accounts, ignoredCollector) {
+  const map = {};
+  accounts.forEach(acc => {
+    const uniqueTags = new Set((acc.hashtags || []).map(h => normalizeHashtag(h)).filter(Boolean));
+    uniqueTags.forEach(tag => {
+      if (shouldIgnoreHashtag(tag)) {
+        if (ignoredCollector) ignoredCollector.add(tag);
+        return;
+      }
+      map[tag] = (map[tag] || 0) + 1;
+    });
+  });
+  return map;
+}
+function shouldIgnoreHashtag(tag) {
+  const clean = String(tag || '').replace(/^#/, '').toLowerCase().trim();
+  if (!clean) return true;
+  if (IGNORED_HASHTAG_BASE.has(clean)) return true;
+  if (/^fyp+$/.test(clean)) return true;
+  return false;
+}
+function updateIgnoredHashtagInfo(ignoredSet) {
+  const el = document.getElementById('ignored-hashtags-list');
+  if (!el) return;
+  const items = Array.from(ignoredSet || []).sort((a, b) => a.localeCompare(b));
+  el.textContent = items.length ? items.join(', ') : 'ninguno';
+}
+function countRepeatedValuesByAccount(accounts, key) {
+  const freq = {};
+  accounts.forEach(acc => {
+    const unique = new Set((acc[key] || []).map(v => String(v || '').trim()).filter(Boolean));
+    unique.forEach(v => { freq[v] = (freq[v] || 0) + 1; });
+  });
+  return freq;
+}
+function populateSelectWithRepeated(selectId, defaultLabel, entries) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+  const current = select.value;
+  const opts = [`<option value="">${defaultLabel}</option>`];
+  entries
+    .filter(([, count]) => count > 1)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .forEach(([value, count]) => {
+      const safeValue = escapeHtml(value);
+      opts.push(`<option value="${safeValue}">${safeValue} (${count})</option>`);
+    });
+  select.innerHTML = opts.join('');
+  if (current && Array.from(select.options).some(o => o.value === current)) {
+    select.value = current;
+  }
+}
+function populateTableFilters() {
+  const riesgoFreq = countFreq(allData.map(d => normalizeRiskLabel(d.riesgo || d.label || d.riskLabel)));
+  const hashtagFreq = countRepeatedValuesByAccount(allData, 'hashtags');
+  const musicaFreq = countRepeatedValuesByAccount(allData, 'musica');
+
+  const riesgoEntries = Object.entries(riesgoFreq).sort((a, b) => riskRank(b[0]) - riskRank(a[0]));
+  const riesgoSelect = document.getElementById('filter-riesgo');
+  if (riesgoSelect) {
+    const current = riesgoSelect.value;
+    const opts = ['<option value="">riesgo: todos</option>'];
+    riesgoEntries.forEach(([label, count]) => {
+      opts.push(`<option value="${label}">${label} (${count})</option>`);
+    });
+    riesgoSelect.innerHTML = opts.join('');
+    if (current && Array.from(riesgoSelect.options).some(o => o.value === current)) {
+      riesgoSelect.value = current;
+    }
+  }
+
+  populateSelectWithRepeated('filter-hashtag', 'hashtag repetido: todos', Object.entries(hashtagFreq));
+  populateSelectWithRepeated('filter-musica', 'música repetida: todos', Object.entries(musicaFreq));
+}
+function applyTableFilters() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  const riesgo = document.getElementById('filter-riesgo')?.value || '';
+  const hashtag = document.getElementById('filter-hashtag')?.value || '';
+  const musica = document.getElementById('filter-musica')?.value || '';
+
+  const filtered = allData.filter(row => {
+    if (q && !(row.cuenta || '').toLowerCase().includes(q)) return false;
+    const rowRisk = normalizeRiskLabel(row.riesgo || row.label || row.riskLabel);
+    if (riesgo && rowRisk !== riesgo) return false;
+    if (hashtag && !(row.hashtags || []).includes(hashtag)) return false;
+    if (musica && !(row.musica || []).includes(musica)) return false;
+    return true;
+  });
+
+  renderTable(filtered);
+}
 function topN(freq, n) {
   return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+function normalizeRiskLabel(value) {
+  const clean = String(value || '').trim().toLowerCase();
+  if (!clean) return 'seguro';
+  if (clean.includes('muy') && clean.includes('peligro')) return 'muy peligroso';
+  if (clean.includes('inter')) return 'intermedio';
+  if (clean.includes('sospech')) return 'intermedio';
+  if (clean.includes('segur')) return 'seguro';
+  return 'seguro';
+}
+function riskRank(label) {
+  if (label === 'muy peligroso') return 3;
+  if (label === 'intermedio') return 2;
+  return 1;
+}
+function highestRisk(a, b) {
+  return riskRank(b) > riskRank(a) ? b : a;
+}
+function normalizeHashtag(tag) {
+  if (!tag) return '';
+  const clean = String(tag).trim();
+  if (!clean) return '';
+  return clean.startsWith('#') ? clean.toLowerCase() : ('#' + clean.toLowerCase());
+}
+function toUniqueArray(val) {
+  if (!Array.isArray(val)) return [];
+  return Array.from(new Set(val.map(v => String(v || '').trim()).filter(Boolean)));
+}
+function extractHashtags(item) {
+  const out = [];
+  const raw = item.hashtags;
+  if (Array.isArray(raw)) {
+    raw.forEach(h => {
+      if (typeof h === 'string') out.push(normalizeHashtag(h));
+      else if (h && typeof h === 'object') out.push(normalizeHashtag(h.name || h.title || ''));
+    });
+  }
+  const text = typeof item.text === 'string' ? item.text : '';
+  const fromText = text.match(/#[^\s#]+/g) || [];
+  fromText.forEach(t => out.push(normalizeHashtag(t)));
+  return Array.from(new Set(out.filter(Boolean)));
+}
+function extractEmojis(text) {
+  if (!text || typeof text !== 'string') return [];
+  const matches = text.match(/\p{Extended_Pictographic}/gu) || [];
+  return Array.from(new Set(matches));
+}
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 function showToast(msg) {
   const t = document.getElementById('toast');
