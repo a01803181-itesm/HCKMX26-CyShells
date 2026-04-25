@@ -1,128 +1,139 @@
 import fs from 'fs';
+import { ApifyClient } from 'apify-client';
 import Fuse from 'fuse.js';
+import AhoCorasick from 'aho-corasick'; // Algoritmo de alta eficiencia
 
-// 1. Diccionario de Amenazas (Términos normalizados y su "peso" de riesgo)
+// 1. Configuración de Clientes y Diccionarios
+const apifyClient = new ApifyClient({
+    token: 'apify_api_0vAXcK9Pfl48NBC4v3ENhUJsR48GrB1EEG7m', // Pon tu token real
+});
+
 const diccionarioAmenazas = [
     { termino: "cjng", peso: 50 },
     { termino: "cartel", peso: 50 },
     { termino: "4L", peso: 40 },
     { termino: "reclutamiento", peso: 50 },
-    { termino: "empresa", peso: 20 }, // Puede ser normal, peso medio
     { termino: "belico", peso: 30 },
     { termino: "alucin", peso: 15 },
     { termino: "plaza", peso: 20 },
     { termino: "sinaloa", peso: 10 }
 ];
 
-// 2. Diccionario de Atenuantes (Palabras que indican que el video es seguro/comida)
-const palabrasSeguras = ["pizza", "food", "chicken", "recipe", "comida", "pollo", "cheese", "asmr"];
+const palabrasSeguras = ["pizza", "food", "recipe", "comida", "pollo", "chef"];
 
-// 3. Configuración de Fuse.js para Búsqueda Difusa (Tolerancia a errores ortográficos)
-const fuseOptions = {
-    keys: ['termino'],
-    includeScore: true,
-    threshold: 0.3, // 0.0 es coincidencia exacta. 0.3 permite errores (ej. "reclutamiendo" vs "reclutamiento")
-};
+// 2. Configuración de Filtro Beta (Aho-Corasick)
+const frasesReclutamiento = ["info", "cuanto pagan", "manda dm", "quiero trabajar", "jalo", "me interesa", "donde firmo"];
+const frasesAdmiracion = ["puro cjng", "arriba las 4l", "al millon", "señor de los gallos", "la empresa", "puro jefe"];
 
-const fuse = new Fuse(diccionarioAmenazas, fuseOptions);
+const acReclutamiento = new AhoCorasick(frasesReclutamiento);
+const acAdmiracion = new AhoCorasick(frasesAdmiracion);
 
-// 4. Lógica de Evaluación (El corazón del Filtro Alpha)
-function evaluarReel(tiktok) {
-    let threatScore = 0;
-    const descripcion = tiktok.text ? tiktok.text.toLowerCase() : "";
-    let hashtags = [];
+// 3. Lógica del Filtro Alpha (Fuse.js)
+const fuse = new Fuse(diccionarioAmenazas, { keys: ['termino'], threshold: 0.3 });
 
-    if (tiktok.hashtags && Array.isArray(tiktok.hashtags)) {
-        hashtags = tiktok.hashtags.map(ht => ht.name.toLowerCase());
-        if (hashtags.length == 0 && descripcion == "") {
-            return {
-                score: 30,
-                motivo: "Filtro sin capacidades suficientes de identificación",
-                url: tiktok.webVideoUrl
-            };
-        }
+function evaluarReelAlpha(tiktok) {
+    const texto = (tiktok.text || "").toLowerCase();
+    const hashtags = (tiktok.hashtags || []).map(h => h.name.toLowerCase()).join(" ");
+    const todoElTexto = texto + " " + hashtags;
+
+    // Regla de descarte de comida
+    if ((todoElTexto.includes('🍕') || todoElTexto.includes('🐓')) && palabrasSeguras.some(p => todoElTexto.includes(p))) {
+        return { score: 0, motivo: "Contexto de comida detectado" };
     }
 
-    // Unir todo el texto analizable (Descripción + Hashtags)
-    const textoCompleto = descripcion + " " + hashtags.join(" ");
-
-    // A) REGLA DE DESCARTE RÁPIDO (La regla de la Pizza/Comida)
-    // Si contiene emojis de riesgo pero también palabras de comida, penalizamos el score.
-    const tieneEmojiRiesgo = textoCompleto.includes('🍕') || textoCompleto.includes('🐓') || textoCompleto.includes('🥷');
-    const esContextoComida = palabrasSeguras.some(palabra => textoCompleto.includes(palabra));
-
-    if (esContextoComida) {
-        return { score: 0, motivo: "Falso Positivo detectado (Contexto de comida)", url: tiktok.webVideoUrl };
+    // Si no tiene texto ni hashtags, es sospechoso por ofuscación
+    if (!tiktok.text && (!tiktok.hashtags || tiktok.hashtags.length === 0)) {
+        return { score: 35, motivo: "Posible ofuscación (Sin metadatos)" };
     }
 
-    // B) ANÁLISIS DE AMENAZAS CON FUSE.JS
-    // Separamos el texto en palabras para analizarlas
-    const palabrasEnTexto = textoCompleto.split(/[\s,]+/);
-    const hallazgos = new Set(); // Para no sumar la misma palabra dos veces
-
-    palabrasEnTexto.forEach(palabra => {
-        // Fuse busca si la palabra del reel se parece a alguna de nuestro diccionario
-        const resultados = fuse.search(palabra);
-
-        if (resultados.length > 0) {
-            // Tomamos la mejor coincidencia
-            const mejorCoincidencia = resultados[0].item;
-
-            if (!hallazgos.has(mejorCoincidencia.termino)) {
-                threatScore += mejorCoincidencia.peso;
-                hallazgos.add(mejorCoincidencia.termino);
-            }
-        }
+    let score = 0;
+    const palabras = todoElTexto.split(/\s+/);
+    palabras.forEach(p => {
+        const res = fuse.search(p);
+        if (res.length > 0) score += res[0].item.peso;
     });
 
-    // C) PUNTUACIÓN DIRECTA POR EMOJIS (Fuera del contexto de comida)
-    if (textoCompleto.includes('🍕') && textoCompleto.includes('🐓')) threatScore += 40; // Combinación de facciones
-    else if (textoCompleto.includes('🍕') || textoCompleto.includes('🥷')) threatScore += 15;
-    if (textoCompleto.includes('🪖')) threatScore += 20;
+    if (todoElTexto.includes('🍕') && todoElTexto.includes('🐓')) score += 40;
 
-    return {
-        score: threatScore,
-        motivo: `Puntos sumados por: [${Array.from(hallazgos).join(', ')}] y análisis de emojis.`,
-        url: tiktok.webVideoUrl
-    };
+    return { score, url: tiktok.webVideoUrl, motivo: "Análisis de términos y emojis" };
 }
 
-// 5. Función Principal
-function ejecutarFiltroAlpha() {
+// 4. Lógica del Filtro Beta (Análisis de Comentarios)
+function analizarComentariosBeta(comentarios) {
+    const textoJunto = comentarios.join(" ").toLowerCase();
+
+    // Búsqueda en una sola pasada con Aho-Corasick
+    const hitsReclutamiento = acReclutamiento.search(textoJunto).length;
+    const hitsAdmiracion = acAdmiracion.search(textoJunto).length;
+
+    let nivelRiesgo = "ALTO (Pendiente)";
+    if (hitsReclutamiento >= 2) nivelRiesgo = "CRÍTICO (Reclutamiento Activo)";
+    else if (hitsAdmiracion >= 3) nivelRiesgo = "CRÍTICO (Idolatría Criminal)";
+
+    return { hitsReclutamiento, hitsAdmiracion, nivelRiesgo };
+}
+
+// 5. Función Maestra: El Pipeline Alpha -> Beta
+async function ejecutarProteccion404() {
     try {
-        const dataRaw = fs.readFileSync('./scrapetest.json', 'utf-8');
-        const tiktoks = JSON.parse(dataRaw);
+        const rawData = fs.readFileSync('./scrapetest.json', 'utf-8');
+        const tiktoks = JSON.parse(rawData);
 
-        console.log(`\n🛡️ INICIANDO FILTRO ALPHA (Threat Scoring) - ${tiktoks.length} publicaciones.\n`);
+        console.log(`\n🛡️ SISTEMA 404: Analizando ${tiktoks.length} videos...`);
 
-        let threatsNumber = 0;
-        tiktoks.forEach((tiktok, index) => {
-            const evaluacion = evaluarReel(tiktok);
+        const prospectosBeta = [];
 
-            // Solo imprimimos los que superen un umbral de sospecha (ej. más de 20 puntos)
-            // o imprimimos todo para depurar
-            console.log(`[Reel #${index + 1}] | ID: ${tiktok.id}`);
-            console.log(`📝 Texto: ${tiktok.text ? tiktok.text.substring(0, 50) + "..." : "N/A"}`);
-
-            if (evaluacion.score >= 30) {
-                console.log(`🔴 PELIGRO ALTO | Score: ${evaluacion.score}`);
-                ++threatsNumber;
-            } else if (evaluacion.score > 0) {
-                console.log(`🟡 SOSPECHOSO | Score: ${evaluacion.score}`);
-            } else {
-                console.log(`🟢 SEGURO | Score: 0`);
+        // FASE 1: FILTRADO ALPHA
+        tiktoks.forEach(t => {
+            const res = evaluarReelAlpha(t);
+            if (res.score >= 30) {
+                prospectosBeta.push({ id: t.id, url: t.webVideoUrl, scoreAlpha: res.score });
             }
-            console.log(`Link al video: ${evaluacion.url}`);
-
-            console.log(`🔍 Detalle: ${evaluacion.motivo}`);
-            console.log('--------------------------------------------------');
         });
 
-        console.log(`Threats found: ${threatsNumber}/${tiktoks.length}`);
+        if (prospectosBeta.length === 0) {
+            console.log("✅ No se detectaron amenazas en la Fase Alpha.");
+            return;
+        }
+
+        console.log(`⚠️ Fase Alpha: ${prospectosBeta.length} videos sospechosos. Iniciando Fase Beta...`);
+
+        // FASE 2: EXTRACCIÓN CON APIFY
+        const urls = prospectosBeta.map(p => p.url);
+        const run = await apifyClient.actor("clockworks/tiktok-comments-scraper").call({
+            postURLs: urls,
+            commentsPerPost: 30
+        });
+
+        const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+
+        // Agrupar comentarios por URL de video
+        const comentariosPorVideo = {};
+        items.forEach(item => {
+            if (!comentariosPorVideo[item.postURL]) comentariosPorVideo[item.postURL] = [];
+            comentariosPorVideo[item.postURL].push(item.text);
+        });
+
+        // FASE 3: ANÁLISIS AHO-CORASICK Y REPORTE
+        console.log("\n🚨 REPORTE FINAL DE AMENAZAS DETECTADAS:");
+        console.log("==================================================");
+
+        prospectosBeta.forEach(video => {
+            const listaComentarios = comentariosPorVideo[video.url] || [];
+            const analisisBeta = analizarComentariosBeta(listaComentarios);
+
+            console.log(`[VIDEO ID: ${video.id}]`);
+            console.log(`🔗 URL: ${video.url}`);
+            console.log(`📊 Score Alpha: ${video.scoreAlpha}`);
+            console.log(`💬 Análisis Beta: ${analisisBeta.nivelRiesgo}`);
+            console.log(`   - Interacciones de reclutamiento: ${analisisBeta.hitsReclutamiento}`);
+            console.log(`   - Frases de admiración: ${analisisBeta.hitsAdmiracion}`);
+            console.log("--------------------------------------------------");
+        });
 
     } catch (error) {
-        console.error("🚨 Error al procesar:", error.message);
+        console.error("🚨 Error en el Pipeline:", error.message);
     }
 }
 
-ejecutarFiltroAlpha();
+ejecutarProteccion404();
