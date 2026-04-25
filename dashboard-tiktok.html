@@ -366,6 +366,26 @@
     line-height: 1.45;
     word-break: break-word;
   }
+  .range-tooltip {
+    position: absolute;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    pointer-events: none;
+    z-index: 9999;
+    max-width: 320px;
+    white-space: normal;
+  }
+  .range-tooltip .tt-title { color: var(--text); margin-bottom: 4px; }
+  .range-tooltip .tt-sub { color: var(--text3); margin-bottom: 6px; }
+  .range-tooltip .tt-name-high { color: var(--red2); }
+  .range-tooltip .tt-sep { color: var(--text3); margin: 6px 0 4px; }
   .chart-wrap { position: relative; width: 100%; }
 
   /* ── TABLE ── */
@@ -479,6 +499,39 @@
     flex-shrink: 0;
   }
   .account-name { color: var(--text); font-weight: 500; }
+  .account-name.risk-high-name { color: var(--red2); }
+  .account-name-wrap { position: relative; display: inline-block; }
+  .account-link-pop {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 2px);
+    min-width: 240px;
+    max-width: 360px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s;
+    z-index: 25;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .account-name-wrap:hover .account-link-pop,
+  .account-link-pop:hover {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .account-link-pop a {
+    color: var(--blue);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .account-link-pop a:hover { text-decoration: underline; }
   .num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
   .tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .tag {
@@ -590,7 +643,7 @@
         </svg>
       </div>
       <div>
-        <div class="import-title" id="import-title-text">Importar datos</div>
+        <div class="import-title" id="import-title-text">Importar Datos</div>
         <div class="import-sub" id="import-sub-text">Arrastra un archivo JSON o CSV exportado desde Apify / Octoparse</div>
       </div>
     </div>
@@ -611,7 +664,7 @@
       <div class="card-value red" id="stat-cuentas">—</div>
       <div class="card-sub">perfiles únicos</div>
       <div class="risk-hover-box" id="risk-hover-box">
-        <div class="risk-hover-title">desglose de riesgo</div>
+        <div class="risk-hover-title">Desglose de Riesgo</div>
         <div class="risk-hover-row"><span>Seguras</span><strong id="risk-safe-count">—</strong></div>
         <div class="risk-hover-row"><span>No seguras</span><strong id="risk-unsafe-count">—</strong></div>
       </div>
@@ -650,11 +703,11 @@
   </div>
   <div class="charts-row">
     <div class="chart-card">
-      <div class="chart-title">// seguidores por cuenta</div>
+      <div class="chart-title">Seguidores por Cuenta</div>
       <div class="chart-wrap" style="height:280px;"><canvas id="chart-followers" role="img" aria-label="Seguidores por cuenta de TikTok">Cargando datos...</canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">// publicaciones por cuenta</div>
+      <div class="chart-title">Publicaciones por Cuenta</div>
       <div class="chart-wrap" style="height:280px;"><canvas id="chart-posts" role="img" aria-label="Publicaciones por cuenta">Cargando datos...</canvas></div>
     </div>
   </div>
@@ -662,11 +715,11 @@
   <div class="charts-row">
     <div class="chart-card">
       <div class="chart-head">
-        <div class="chart-title">// hashtags más usados (top 10)</div>
+        <div class="chart-title">Hashtags más Usados (top 10)</div>
         <div class="info-wrap" aria-label="Hashtags ignorados">
           <span class="info-btn">i</span>
           <div class="info-pop">
-            <div class="info-title">hashtags ignorados</div>
+            <div class="info-title">Hashtags Ignorados</div>
             <div class="info-list" id="ignored-hashtags-list">ninguno</div>
           </div>
         </div>
@@ -674,18 +727,18 @@
       <div class="chart-wrap" id="wrap-hashtags" style="height:320px;"><canvas id="chart-hashtags" role="img" aria-label="Hashtags más frecuentes">Cargando datos...</canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">// emojis más usados (top 10)</div>
+      <div class="chart-title">Emojis más Usados</div>
       <div class="chart-wrap" id="wrap-emojis" style="height:320px;"><canvas id="chart-emojis" role="img" aria-label="Emojis más frecuentes">Cargando datos...</canvas></div>
     </div>
   </div>
 
   <div class="charts-row">
     <div class="chart-card">
-      <div class="chart-title">// música más usada (top 8)</div>
+      <div class="chart-title">Música más Usada</div>
       <div class="chart-wrap" id="wrap-music" style="height:300px;"><canvas id="chart-music" role="img" aria-label="Música más usada">Cargando datos...</canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">// comentarios por cuenta</div>
+      <div class="chart-title">Comentarios por Cuenta</div>
       <div class="chart-wrap" style="height:300px;"><canvas id="chart-comments" role="img" aria-label="Comentarios por cuenta">Cargando datos...</canvas></div>
     </div>
   </div>
@@ -698,19 +751,19 @@
   <div class="table-wrapper">
     <div class="table-header">
       <div>
-        <div class="table-title">// cuentas detectadas</div>
+        <div class="table-title">Cuentass Detectadas</div>
         <div class="table-file" id="loaded-file-name">archivo: sin cargar</div>
       </div>
       <div class="table-filters">
         <input type="text" id="search-input" placeholder="buscar cuenta...">
         <select id="filter-riesgo" class="filter-select" aria-label="Filtrar por riesgo">
-          <option value="">riesgo: todos</option>
+          <option value="">Riesgo: todos</option>
         </select>
         <select id="filter-hashtag" class="filter-select" aria-label="Filtrar por hashtag repetido">
-          <option value="">hashtag repetido: todos</option>
+          <option value="">Hashtag repetido: todos</option>
         </select>
         <select id="filter-musica" class="filter-select" aria-label="Filtrar por música repetida">
-          <option value="">música repetida: todos</option>
+          <option value="">Música repetida: todos</option>
         </select>
       </div>
     </div>
@@ -753,6 +806,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+  
 /* ── ESTADO GLOBAL ── */
 let allData = [];
 let charts = {};
@@ -892,7 +946,8 @@ function parseCSV(text) {
       hashtags: (obj.hashtags || '').split('|').filter(Boolean),
       emojis: (obj.emojis || '').split('|').filter(Boolean),
       musica: (obj.musica || obj.music || '').split('|').filter(Boolean),
-      riesgo: obj.riesgo || obj.label || obj.riskLabel || 'seguro'
+      riesgo: obj.riesgo || obj.label || obj.riskLabel || 'seguro',
+      profileUrl: obj.profileUrl || obj.profileurl || ''
     };
   }).filter(r => r.cuenta);
 }
@@ -914,7 +969,8 @@ function normalizeData(input) {
       hashtags: toUniqueArray(row.hashtags),
       emojis: toUniqueArray(row.emojis),
       musica: toUniqueArray(row.musica),
-      riesgo: normalizeRiskLabel(row.riesgo || row.label || row.riskLabel)
+      riesgo: normalizeRiskLabel(row.riesgo || row.label || row.riskLabel),
+      profileUrl: row.profileUrl || row.profileurl || ''
     })).filter(r => r.cuenta);
   }
 
@@ -933,7 +989,8 @@ function normalizeData(input) {
         hashtagsSet: new Set(),
         emojisSet: new Set(),
         musicaSet: new Set(),
-        riskLevel: 'seguro'
+        riskLevel: 'seguro',
+        profileUrl: ''
       };
     }
     const row = grouped[cuenta];
@@ -947,6 +1004,7 @@ function normalizeData(input) {
     if (song && typeof song === 'string') row.musicaSet.add(song.trim());
     const itemRisk = normalizeRiskLabel(item.label || item.riesgo || item.riskLabel);
     row.riskLevel = highestRisk(row.riskLevel, itemRisk);
+    if (!row.profileUrl && item.authorMeta?.profileUrl) row.profileUrl = String(item.authorMeta.profileUrl);
   });
 
   return Object.values(grouped)
@@ -958,7 +1016,8 @@ function normalizeData(input) {
       hashtags: Array.from(r.hashtagsSet),
       emojis: Array.from(r.emojisSet),
       musica: Array.from(r.musicaSet),
-      riesgo: r.riskLevel
+      riesgo: r.riskLevel,
+      profileUrl: r.profileUrl
     }))
     .sort((a, b) => b.followers - a.followers);
 }
@@ -1030,18 +1089,43 @@ const CHART_OPTS = {
     y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555d6b', font: { family: 'IBM Plex Mono', size: 10 } } }
   }
 };
+const RANGE_OPTS = {
+  ...CHART_OPTS,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: false,
+      external: renderRangeTooltip
+    }
+  }
+};
 const HORIZ_OPTS = {
   indexAxis: 'y',
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: ctx => `Cuentas: ${ctx.raw}`,
+        afterBody: items => {
+          const item = items && items.length ? items[0] : null;
+          const label = item?.label;
+          const membersByLabel = item?.dataset?.membersByLabel || {};
+          const members = label ? (membersByLabel[label] || []) : [];
+          if (!members.length) return [];
+          return ['---', ...members.map(name => `• ${name}`)];
+        }
+      }
+    }
+  },
   scales: {
     x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#555d6b', font: { family: 'IBM Plex Mono', size: 10 } } },
     y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b92a0', font: { family: 'IBM Plex Mono', size: 11 } } }
   }
 };
 
-function makeChart(id, type, labels, data, color, opts) {
+function makeChart(id, type, labels, data, color, opts, extraDatasetProps = {}) {
   if (charts[id]) charts[id].destroy();
   charts[id] = new Chart(document.getElementById(id), {
     type,
@@ -1052,7 +1136,8 @@ function makeChart(id, type, labels, data, color, opts) {
         backgroundColor: color,
         borderColor: 'transparent',
         borderRadius: 4,
-        borderSkipped: false
+        borderSkipped: false,
+        ...extraDatasetProps
       }]
     },
     options: opts
@@ -1060,43 +1145,128 @@ function makeChart(id, type, labels, data, color, opts) {
 }
 
 function renderChartFollowers() {
-  const labels = allData.map(d => shortName(d.cuenta));
-  const data   = allData.map(d => d.followers || 0);
-  makeChart('chart-followers', 'bar', labels, data, '#e8413e', CHART_OPTS);
+  const buckets = buildRangeBuckets(allData, 'followers', 6);
+  makeRangeChart('chart-followers', buckets, '#e8413e');
 }
 function renderChartPosts() {
-  const labels = allData.map(d => shortName(d.cuenta));
-  const data   = allData.map(d => d.publicaciones || 0);
-  makeChart('chart-posts', 'bar', labels, data, '#e8a83e', CHART_OPTS);
+  const buckets = buildRangeBuckets(allData, 'publicaciones', 6);
+  makeRangeChart('chart-posts', buckets, '#e8a83e');
 }
 function renderChartComments() {
-  const labels = allData.map(d => shortName(d.cuenta));
-  const data   = allData.map(d => d.comentarios || 0);
-  makeChart('chart-comments', 'bar', labels, data, '#4a9eff', CHART_OPTS);
+  const buckets = buildRangeBuckets(allData, 'comentarios', 6);
+  makeRangeChart('chart-comments', buckets, '#4a9eff');
+}
+function makeRangeChart(id, buckets, color) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: buckets.labels,
+      datasets: [{
+        data: buckets.counts,
+        membersByBin: buckets.membersByBin,
+        backgroundColor: color,
+        borderColor: 'transparent',
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: RANGE_OPTS
+  });
+}
+function renderRangeTooltip(context) {
+  const { chart, tooltip } = context;
+  let el = document.getElementById('range-tooltip');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'range-tooltip';
+    el.className = 'range-tooltip';
+    document.body.appendChild(el);
+  }
+  if (!tooltip || tooltip.opacity === 0) {
+    el.style.opacity = 0;
+    return;
+  }
+
+  const point = tooltip.dataPoints && tooltip.dataPoints.length ? tooltip.dataPoints[0] : null;
+  const idx = point ? point.dataIndex : -1;
+  const dataset = point?.dataset || {};
+  const members = idx >= 0 ? (dataset.membersByBin?.[idx] || []) : [];
+  const label = point?.label || '';
+  const count = point?.raw ?? 0;
+
+  const namesHtml = members.length
+    ? members.map(name => {
+      const cls = isHighRiskAccount(name) ? 'tt-name-high' : '';
+      return `<div class="${cls}">• ${escapeHtml(name)}</div>`;
+    }).join('')
+    : '<div>Sin cuentas en este rango</div>';
+
+  el.innerHTML = `
+    <div class="tt-title">${escapeHtml(label)}</div>
+    <div class="tt-sub">Cuentas: ${count}</div>
+    <div class="tt-sep">---</div>
+    ${namesHtml}
+  `;
+
+  const rect = chart.canvas.getBoundingClientRect();
+  el.style.opacity = 1;
+  el.style.left = `${rect.left + window.pageXOffset + tooltip.caretX + 12}px`;
+  el.style.top = `${rect.top + window.pageYOffset + tooltip.caretY + 12}px`;
 }
 
 function renderChartHashtags() {
   const ignoredFound = new Set();
-  const freq = countAccountsByHashtag(allData, ignoredFound);
+  const { freq, membersByTag } = countAccountsByHashtag(allData, ignoredFound);
   const top  = topN(freq, 10);
   const h = Math.max(top.length * 40 + 60, 200);
   document.getElementById('wrap-hashtags').style.height = h + 'px';
-  makeChart('chart-hashtags', 'bar', top.map(t=>t[0]), top.map(t=>t[1]), '#4a9eff', HORIZ_OPTS);
+  const labels = top.map(t => t[0]);
+  makeChart(
+    'chart-hashtags',
+    'bar',
+    labels,
+    top.map(t => t[1]),
+    '#4a9eff',
+    HORIZ_OPTS,
+    { membersByLabel: buildMembersByLabel(labels, membersByTag) }
+  );
   updateIgnoredHashtagInfo(ignoredFound);
 }
 function renderChartEmojis() {
-  const freq = countFreq(allData.flatMap(d => d.emojis || []));
+  const { freq, membersByValue } = countAccountsByValue(allData, 'emojis');
   const top  = topN(freq, 10);
   const h = Math.max(top.length * 40 + 60, 200);
   document.getElementById('wrap-emojis').style.height = h + 'px';
-  makeChart('chart-emojis', 'bar', top.map(t=>t[0]), top.map(t=>t[1]), '#a78bfa', HORIZ_OPTS);
+  const labels = top.map(t => t[0]);
+  makeChart(
+    'chart-emojis',
+    'bar',
+    labels,
+    top.map(t => t[1]),
+    '#a78bfa',
+    HORIZ_OPTS,
+    { membersByLabel: buildMembersByLabel(labels, membersByValue) }
+  );
 }
 function renderChartMusic() {
-  const freq = countFreq(allData.flatMap(d => d.musica || []));
+  const { freq, membersByValue } = countAccountsByValue(allData, 'musica');
   const top  = topN(freq, 8);
   const h = Math.max(top.length * 40 + 60, 200);
   document.getElementById('wrap-music').style.height = h + 'px';
-  makeChart('chart-music', 'bar', top.map(t=>t[0].length>30?t[0].slice(0,30)+'…':t[0]), top.map(t=>t[1]), '#e8a83e', HORIZ_OPTS);
+  const originalLabels = top.map(t => t[0]);
+  const displayLabels = originalLabels.map(v => v.length > 30 ? v.slice(0,30) + '…' : v);
+  const membersByLabel = {};
+  displayLabels.forEach((display, i) => { membersByLabel[display] = membersByValue[originalLabels[i]] || []; });
+  makeChart(
+    'chart-music',
+    'bar',
+    displayLabels,
+    top.map(t => t[1]),
+    '#e8a83e',
+    HORIZ_OPTS,
+    { membersByLabel }
+  );
 }
 
 /* ── TABLA ── */
@@ -1113,8 +1283,14 @@ function renderTable(data) {
     const music = (row.musica||[]).slice(0,2).map(m => `<span class="tag music">${m.length>28?m.slice(0,28)+'…':m}</span>`).join('');
     const riskLabel = normalizeRiskLabel(row.riesgo || row.label || row.riskLabel);
     const riskClass = riskLabel === 'muy peligroso' ? 'risk-high' : (riskLabel === 'intermedio' ? 'risk-mid' : 'risk-safe');
+    const accountClass = riskLabel === 'muy peligroso' ? 'account-name risk-high-name' : 'account-name';
+    const profileUrl = String(row.profileUrl || '').trim();
+    const safeUrl = escapeHtml(profileUrl);
+    const accountNameHtml = profileUrl
+      ? `<span class="account-name-wrap"><span class="${accountClass}">${row.cuenta}</span><span class="account-link-pop"><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a></span></span>`
+      : `<span class="${accountClass}">${row.cuenta}</span>`;
     return `<tr>
-      <td><div class="td-account"><div class="account-avatar">${initials}</div><span class="account-name">${row.cuenta}</span></div></td>
+      <td><div class="td-account"><div class="account-avatar">${initials}</div>${accountNameHtml}</div></td>
       <td><div class="tags"><span class="tag risk ${riskClass}">${riskLabel}</span></div></td>
       <td class="num">${fmtNum(row.followers||0)}</td>
       <td class="num">${fmtNum(row.publicaciones||0)}</td>
@@ -1164,6 +1340,40 @@ function fmtNum(n) {
   return n.toString();
 }
 function shortName(name) { return (name||'').replace('@','').slice(0,12); }
+function buildRangeBuckets(accounts, key, bucketCount = 6) {
+  const values = accounts.map(a => Number(a[key]) || 0);
+  if (!values.length) {
+    return { labels: ['0-0'], counts: [0], membersByBin: [[]] };
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (min === max) {
+    return {
+      labels: [`${fmtNum(min)} - ${fmtNum(max)}`],
+      counts: [accounts.length],
+      membersByBin: [accounts.map(a => a.cuenta || 'sin_cuenta')]
+    };
+  }
+  const bins = Math.max(1, bucketCount);
+  const step = Math.ceil((max - min + 1) / bins);
+  const labels = [];
+  const counts = Array.from({ length: bins }, () => 0);
+  const membersByBin = Array.from({ length: bins }, () => []);
+  for (let i = 0; i < bins; i++) {
+    const start = min + i * step;
+    const end = i === bins - 1 ? max : (start + step - 1);
+    labels.push(`${fmtNum(start)} - ${fmtNum(end)}`);
+  }
+  accounts.forEach(acc => {
+    const v = Number(acc[key]) || 0;
+    let idx = Math.floor((v - min) / step);
+    if (idx < 0) idx = 0;
+    if (idx >= bins) idx = bins - 1;
+    counts[idx] += 1;
+    membersByBin[idx].push(acc.cuenta || 'sin_cuenta');
+  });
+  return { labels, counts, membersByBin };
+}
 function countFreq(arr) {
   const map = {};
   arr.forEach(v => { if(v) map[v] = (map[v]||0)+1; });
@@ -1171,6 +1381,7 @@ function countFreq(arr) {
 }
 function countAccountsByHashtag(accounts, ignoredCollector) {
   const map = {};
+  const membersByTag = {};
   accounts.forEach(acc => {
     const uniqueTags = new Set((acc.hashtags || []).map(h => normalizeHashtag(h)).filter(Boolean));
     uniqueTags.forEach(tag => {
@@ -1179,8 +1390,28 @@ function countAccountsByHashtag(accounts, ignoredCollector) {
         return;
       }
       map[tag] = (map[tag] || 0) + 1;
+      if (!membersByTag[tag]) membersByTag[tag] = [];
+      membersByTag[tag].push(acc.cuenta || 'sin_cuenta');
     });
   });
+  return { freq: map, membersByTag };
+}
+function countAccountsByValue(accounts, key) {
+  const freq = {};
+  const membersByValue = {};
+  accounts.forEach(acc => {
+    const values = new Set((acc[key] || []).map(v => String(v || '').trim()).filter(Boolean));
+    values.forEach(v => {
+      freq[v] = (freq[v] || 0) + 1;
+      if (!membersByValue[v]) membersByValue[v] = [];
+      membersByValue[v].push(acc.cuenta || 'sin_cuenta');
+    });
+  });
+  return { freq, membersByValue };
+}
+function buildMembersByLabel(labels, sourceMap) {
+  const map = {};
+  labels.forEach(label => { map[label] = sourceMap[label] || []; });
   return map;
 }
 function shouldIgnoreHashtag(tag) {
@@ -1279,6 +1510,11 @@ function riskRank(label) {
 }
 function highestRisk(a, b) {
   return riskRank(b) > riskRank(a) ? b : a;
+}
+function isHighRiskAccount(accountName) {
+  const row = allData.find(d => (d.cuenta || '') === accountName);
+  if (!row) return false;
+  return normalizeRiskLabel(row.riesgo || row.label || row.riskLabel) === 'muy peligroso';
 }
 function normalizeHashtag(tag) {
   if (!tag) return '';
