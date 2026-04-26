@@ -59,6 +59,14 @@ Debido a la magnitud del contenido generado, el problema se vuelve inabordable m
 
 ***Instrucciones para la ejecución del prototipo:***
 
+Paso 1: Generación de Token. Para obtener tu token de API de Apify, inicia sesión en la consola de Apify y dirígete a Settings (Configuración) > Integrations (Integraciones). Allí encontrarás tu Personal API Token, el cual puedes copiar para autenticar tus solicitudes de API, integraciones con n8n, Make u otros servicios.
+Paso 2: 
+Paso 3: Descargar todos los archivos del repositorio HCKMX26-1776750078
+Paso 4: Abrir la carpeta del repositorio en su computadora. Copiar la dirección a esa carpeta
+Paso 5: Abrir terminal Windows PowerShell (o equivalente dependiendo del sistema operativo). Escribir el siguiente comando en la terminal y darle enter: npm install express mysql2 cors
+Paso 6: Escribir en la terminal y darle enter: cd [Dirección de la carpeta del repositorio en su computadora]
+Paso 7: Escribir en la terminal y darle enter: node server.mjs El mensaje “🚀 Servidor Dashboard iniciado en http://localhost:3000 📡 Conectado a la DB RDS: hack_shell” aparece; significa que todo ocurrió correctamente. 
+Paso 8: Abrir el archivo dashboard-tiktok en su browser de preferencia. 
 
 
 ***IA Utilizadas:***
