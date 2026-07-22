@@ -22,7 +22,7 @@ class FiltroInteligencia:
         self.model.to('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Inicializar lector OCR (español e inglés)
-        print("[*] Inicializando motor OCR (EasyOCR)...")
+        print("[*] Inicializando OCR...")
         self.ocr_reader = easyocr.Reader(['es', 'en'], gpu=torch.cuda.is_available(), verbose=False)
         
         self.pesos = {
@@ -69,20 +69,15 @@ class FiltroInteligencia:
             # Contacto
             'whatsapp', 'telegram', 'contacto', 'comunicate', 'comunícate',
             'manda mensaje', 'llama', 'marca', 'interesados',
-            # Amenazas / control territorial
+            # Palabras como menazas / control territorial
             'territorio', 'cartel', 'grupo', 'organización', 'organizacion',
             'patron', 'patrón', 'jefe', 'comandante', 'lider', 'líder',
-            # Promesas
+            # Beneficios
             'beneficios', 'seguro de vida', 'casa', 'carro', 'camioneta', 'transporte',
             'armas', 'equipo', 'uniforme', 'chaleco', 'radio', 'vehiculo', 'vehículo'
         ]
 
     def analizar_texto_reclutamiento(self, img):
-        """
-        EasyOCR para extraer texto de la imagen y buscar palabras clave
-        asociadas a reclutamiento del crimen organizado.
-        Retorna: (texto_detectado: bool, texto_completo: str, palabras_encontradas: list, regiones: list)
-        """
         try:
             resultados_ocr = self.ocr_reader.readtext(img, paragraph=False)
         except Exception as e:
@@ -92,13 +87,12 @@ class FiltroInteligencia:
         if not resultados_ocr:
             return False, '', [], []
         
-        # Concatenar todo el texto detectado
+        # Concatenar texto 
         textos = []
         regiones = []
         for (bbox, texto, confianza) in resultados_ocr:
             if confianza > 0.25:  # Umbral mínimo de confianza
                 textos.append(texto)
-                # bbox es una lista de 4 puntos [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]
                 xs = [int(p[0]) for p in bbox]
                 ys = [int(p[1]) for p in bbox]
                 regiones.append({
@@ -127,7 +121,6 @@ class FiltroInteligencia:
         return (cv2.countNonZero(mask_sierra) / (img.shape[0]*img.shape[1])) * 100
 
     def _descargar_imagen_desde_url(self, url):
-        """Descarga una imagen  desde una URL y la decodifica."""
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8'
@@ -150,7 +143,7 @@ class FiltroInteligencia:
         base = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
         extensiones_img = ('.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif')
 
-        # 1) og:image (Open Graph) - la más confiable para redes sociales y foros
+        # 1) og:image
         og = re.search(r'<meta[^>]+property=["\']og:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
         if not og:
             og = re.search(r'<meta[^>]+content=["\']([^"\']+)["\'][^>]+property=["\']og:image["\']', html, re.I)
@@ -164,7 +157,7 @@ class FiltroInteligencia:
             except Exception:
                 pass
 
-        # 2) Twitter Card image
+        # 2) Twitter
         tc = re.search(r'<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']', html, re.I)
         if tc:
             img_url = tc.group(1)
@@ -219,7 +212,7 @@ class FiltroInteligencia:
         exts_video = ('.mp4', '.avi', '.mov', '.mkv', '.webm', '.3gp', '.flv')
         if clean.endswith(exts_video):
             return True
-        # Plataformas de video conocidas
+        # Plataformas de video 
         plataformas_video = ['youtube.com/watch', 'youtu.be/', 'tiktok.com', 'facebook.com/watch',
                              'dailymotion.com', 'vimeo.com', 'twitch.tv']
         if any(p in clean for p in plataformas_video):
@@ -233,7 +226,7 @@ class FiltroInteligencia:
             if cap.isOpened():
                 return cap, None  # No hay archivo temporal que limpiar
         
-        # URL remota: descargar a un archivo temporal para que OpenCV pueda abrirlo
+        # URL remota:
         try:
             tmp = tempfile.NamedTemporaryFile(suffix='.mp4', delete=False)
             tmp_path = tmp.name
@@ -250,7 +243,6 @@ class FiltroInteligencia:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([entrada])
             
-            # yt_dlp puede añadir extensión; buscar el archivo descargado
             if not os.path.exists(tmp_path):
                 for ext in ['.mp4', '.webm', '.mkv']:
                     candidate = tmp_path.replace('.mp4', ext)
@@ -261,7 +253,7 @@ class FiltroInteligencia:
             cap = cv2.VideoCapture(tmp_path)
             if cap.isOpened():
                 print(f"[+] Video descargado y listo para analizar.")
-                return cap, tmp_path  # Devolver ruta para poder borrarla al terminar
+                return cap, tmp_path  
             else:
                 os.unlink(tmp_path)
         except Exception as e:
@@ -316,7 +308,7 @@ class FiltroInteligencia:
 
     def _detectar_insignias_mexicanas(self, crop):
         """
-        Analiza el tercio superior del crop (pecho, hombros, brazos) para buscar:
+        Analiza el tercio superior (pecho, hombros, brazos) para buscar:
         - Bandera de México (verde, blanco y rojo en proximidad).
         - Brazalete DN-III-E / Plan Marina (amarillo/naranja brillante).
         - Brazalete Guardia Nacional (negro/azul oscuro con letras de alto contraste blanco/gris).
@@ -368,15 +360,15 @@ class FiltroInteligencia:
 
     def _analizar_calzado(self, crop):
         """
-        Analiza la zona de calzado (15% inferior) para detectar tenis vs botas militares.
-        Cualquier calzado que NO sea bota reglamentaria uniforme (negra o café militar) 
+        Analiza la zona de calzado para detectar tenis vs botas militares.
+        Cualquier calzado que NO sea bota reglamentaria uniforme 
         se cataloga como tenis/calzado civil.
         """
         h, w = crop.shape[:2]
         if h < 40:
             return 'indeterminado'
         
-        # Zona de calzado: último 17% del recorte, franja central
+        # Zona de calzado
         w_start = int(w * 0.15)
         w_end   = int(w * 0.85)
         feet = crop[int(h * 0.83):h, w_start:w_end]
@@ -388,7 +380,6 @@ class FiltroInteligencia:
         total = feet.shape[0] * feet.shape[1]
         
         # 1. Firmas de Botas Oficiales (Deben ser oscuras y uniformes)
-        # Botas negras: H: cualquier, S: baja-media, V: muy baja (oscuridad)
         bajo_bota_negra = np.array([0, 0, 0])
         alto_bota_negra = np.array([180, 70, 60])
         mask_bn = cv2.inRange(hsv_feet, bajo_bota_negra, alto_bota_negra)
@@ -600,11 +591,10 @@ class FiltroInteligencia:
             crop_p = img[max(0, p_box[1]):min(img.shape[0], p_box[3]), max(0, p_box[0]):min(img.shape[1], p_box[2])]
             tipo_vestimenta, score, tipo_insignia = self.analizar_uniforme_persona(crop_p)
             
-            # Calcular posición inicial del texto del tag
+            # Calcular posición inicial del texto (reporte)
             x_pos = p_box[0]
             y_pos = p_box[1] - 8
             
-            # Algoritmo anti-solapamiento de etiquetas (stacking vertical)
             attempts = 0
             while attempts < 8:
                 overlap = False
@@ -620,7 +610,7 @@ class FiltroInteligencia:
             y_pos = max(15, y_pos)
             drawn_label_positions.append((x_pos, y_pos))
 
-            # Caso crítico: Impostores y uniformes incompletos se marcan como peligro SIEMPRE (estén armados o no)
+            # Caso crítico: Impostores y uniformes incompletos se marcan como peligro SIEMPRE
             if tipo_vestimenta == 'sicario_camo_tenis':
                 sicarios_detectados += 1
                 impostores_detectados += 1
@@ -832,8 +822,6 @@ class FiltroInteligencia:
             palabras_str = ', '.join(palabras_sospechosas[:10])
             justificaciones["PROPAGANDA DE RECLUTAMIENTO"] = f"Texto sospechoso de reclutamiento detectado. Palabras clave: [{palabras_str}]."
         
-        # Una patrulla oficial predomina en la escena para prevenir falsos positivos con operativos oficiales.
-        # Pero si hay impostores vestidos de militar con tenis o uniformes incompletos, esto anula la clasificación oficial del grupo.
         es_oficial = (oficiales_detectados >= 1 and vehiculos_oficiales >= 1 and impostores_detectados == 0 and uniformes_incompletos == 0) or \
                      (oficiales_detectados > 0 and sicarios_detectados == 0 and vehiculos_sospechosos == 0)
         
@@ -918,7 +906,7 @@ class FiltroInteligencia:
         font_scale = 1.0
         font_thickness = 2
         
-        # Ajustar escala de fuente dinámicamente para que quepa en el ancho de la imagen
+        # Ajustar escala de fuente
         while True:
             text_size = cv2.getTextSize(titulo_text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_thickness)[0]
             if text_size[0] < img_final_dibujada.shape[1] - 40 or font_scale <= 0.4:
@@ -932,12 +920,12 @@ class FiltroInteligencia:
             cv2.putText(img_final_dibujada, "FRAME MAS CRITICO", (img_final_dibujada.shape[1] - 220, 45),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
-        # Guardar imagen de resultado y abrirla con el visor del sistema
+        # Guardar imagen de resultado
         ruta_salida = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resultado_analisis.png")
         cv2.imwrite(ruta_salida, img_final_dibujada)
         print(f"  [+] Imagen de análisis guardada en: {ruta_salida}")
         
-        # Abrir la imagen con el visor predeterminado del sistema
+        # Abrir la imagen 
         try:
             if sys.platform == 'win32':
                 os.startfile(ruta_salida)
